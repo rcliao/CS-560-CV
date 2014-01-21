@@ -41,14 +41,34 @@ class MenuFrame(Frame):
         hw1Menu.add_command(label="Gray Scale", command=self.onGray)
         hw1Menu.add_command(label="Resize Image", command=self.onResize)
         hw1Menu.add_command(label="Connect Component")
-        hw1Menu.add_command(label="Erode/Dilate/Open/Close")
+
+        morphologicalMenu = Menu(fileMenu)
+        morphologicalMenu.add_command(label="Threshold", command=self.onThreshold)
+        morphologicalMenu.add_command(label="Erode", command=self.onErode)
+        morphologicalMenu.add_command(label="Dilate", command=self.onDilate)
+        morphologicalMenu.add_command(label="Open", command=self.onOpen)
+        morphologicalMenu.add_command(label="Close", command=self.onClose)
+
+        hw1Menu.add_cascade(label='Morphological Operations', menu=morphologicalMenu, underline=0)
+
         hw1Menu.add_command(label="Smooth")
         hw1Menu.add_command(label="Blur")
         hw1Menu.add_command(label="Equalize the Histogram")
         hw1Menu.add_command(label="Otsu's method")
         menubar.add_cascade(label="Homework 1", menu=hw1Menu)
-        
 
+    def displayAndUpdate(self):
+        self.gray_img = Image.fromarray(self.cv_img)
+        self.gray_img_tk = ImageTk.PhotoImage(image=self.gray_img)
+
+        self.parent.geometry("%dx%d+%d+%d" % (self.gray_img_tk.width(), self.gray_img_tk.height(), 100, 100) )
+        
+        self.label = Label(self.parent, image=self.gray_img_tk)
+        self.label.pack()
+        self.label.place(x=0, y=0)
+        self.parent.update()
+        
+    """ Quit program """
     def onExit(self):
         self.quit()
 
@@ -57,52 +77,109 @@ class MenuFrame(Frame):
         filename = askopenfilename() # show an "Open" dialog box and return the path to the selected file
 
         self.cv_img = cv2.imread(filename, 1)
-        self.img = cv2.cvtColor(self.cv_img, cv2.COLOR_RGB2BGR)
 
-        self.gray_img = Image.fromarray(self.img)
-        self.gray_img_tk = ImageTk.PhotoImage(image=self.gray_img)
+        self.cv_img = cv2.cvtColor(self.cv_img, cv2.COLOR_RGB2BGR)
 
-        self.parent.geometry("%dx%d+%d+%d" % (self.gray_img_tk.width(), self.gray_img_tk.height(), 100, 100) )
-        
-        self.label = Label(self.parent, image=self.gray_img_tk)
-        self.label.pack()
-        self.label.place(x=0, y=0)
-        self.parent.update()
+        self.displayAndUpdate()
 
     """ Save the Image into harddisk """
     def onSave(self):
         filename = asksaveasfilename() # show an "Save" dialog box and return the path to the selected file
 
-        cv2.imwrite(filename, self.img)
+        cv2.imwrite(filename, self.cv_img)
 
     """ Conver the image to gray scale and change the image to gray """
     def onGray(self):
-        self.cv_img = cv2.cvtColor(self.cv_img, cv2.COLOR_RGB2GRAY)
-        self.gray_img = Image.fromarray(self.img)
-        self.gray_img_tk = ImageTk.PhotoImage(image=self.gray_img)
+        if len(self.cv_img.shape) == 3:
+            self.cv_img = cv2.cvtColor(self.cv_img, cv2.COLOR_RGB2GRAY)
         
-        self.label = Label(self.parent, image=self.gray_img_tk)
+        self.displayAndUpdate()
 
-        self.label.pack()
-        self.label.place(x=0, y=0)
-        self.parent.update()
-
+    """ Resize the image according to user input """
     def onResize(self):
         ratio = askstring("Ratio", "Enter a Ratio (0 - 1) to resize the image")
         self.cv_img = cv2.resize(self.cv_img, None, fx=float(ratio), fy=float(ratio))
 
-        self.img = cv2.cvtColor(self.cv_img, cv2.COLOR_RGB2BGR)
+        self.displayAndUpdate()
 
-        self.gray_img = Image.fromarray(self.img)
-        self.gray_img_tk = ImageTk.PhotoImage(image=self.gray_img)
+    """ Erode the image """
+    def onErode(self):
 
-        self.parent.geometry("%dx%d+%d+%d" % (self.gray_img_tk.width(), self.gray_img_tk.height(), 100, 100) )
+        # change image to gray scale if not in gray scale mode
+        if len(self.cv_img.shape) == 3:
+            self.cv_img = cv2.cvtColor(self.cv_img, cv2.COLOR_RGB2GRAY)
+
+        # thresholding
+        self.cv_img = cv2.GaussianBlur(self.cv_img,(5,5),0)
+        th3,self.cv_img = cv2.threshold(self.cv_img,0,255,cv2.THRESH_BINARY+cv2.THRESH_OTSU)
+
+        kernel = np.ones((5,5),np.uint8)
+        self.cv_img = cv2.erode(self.cv_img,kernel,iterations = 1)
         
-        self.label = Label(self.parent, image=self.gray_img_tk)
+        self.displayAndUpdate()
 
-        self.label.pack()
-        self.label.place(x=0, y=0)
-        self.parent.update()
+    """ Dilate the image """
+    def onDilate(self):
+
+        # change image to gray scale if not in gray scale mode
+        if len(self.cv_img.shape) == 3:
+            self.cv_img = cv2.cvtColor(self.cv_img, cv2.COLOR_RGB2GRAY)
+
+        # thresholding
+        self.cv_img = cv2.GaussianBlur(self.cv_img,(5,5),0)
+        th3,self.cv_img = cv2.threshold(self.cv_img,0,255,cv2.THRESH_BINARY+cv2.THRESH_OTSU)
+
+        kernel = np.ones((5,5),np.uint8)
+        self.cv_img = cv2.dilate(self.cv_img,kernel,iterations = 1)
+        
+        self.displayAndUpdate()
+
+    """ Open the image """
+    def onOpen(self):
+
+        # change image to gray scale if not in gray scale mode
+        if len(self.cv_img.shape) == 3:
+            self.cv_img = cv2.cvtColor(self.cv_img, cv2.COLOR_RGB2GRAY)
+
+        # thresholding
+        self.cv_img = cv2.GaussianBlur(self.cv_img,(5,5),0)
+        th3,self.cv_img = cv2.threshold(self.cv_img,0,255,cv2.THRESH_BINARY+cv2.THRESH_OTSU)
+
+        kernel = np.ones((5,5),np.uint8)
+        self.cv_img = cv2.morphologyEx(self.cv_img, cv2.MORPH_OPEN,kernel)
+        
+        self.displayAndUpdate()
+
+    """ Close the image """
+    def onClose(self):
+
+        # change image to gray scale if not in gray scale mode
+        if len(self.cv_img.shape) == 3:
+            self.cv_img = cv2.cvtColor(self.cv_img, cv2.COLOR_RGB2GRAY)
+
+        # thresholding
+        self.cv_img = cv2.GaussianBlur(self.cv_img,(5,5),0)
+        th3,self.cv_img = cv2.threshold(self.cv_img,0,255,cv2.THRESH_BINARY+cv2.THRESH_OTSU)
+
+        kernel = np.ones((5,5),np.uint8)
+        self.cv_img = cv2.morphologyEx(self.cv_img, cv2.MORPH_CLOSE, kernel)
+        
+        self.displayAndUpdate()
+
+    """ Thresholding image """
+    def onThreshold(self):
+
+        # change image to gray scale if not in gray scale mode
+        if len(self.cv_img.shape) == 3:
+            self.cv_img = cv2.cvtColor(self.cv_img, cv2.COLOR_RGB2GRAY)
+
+        self.cv_img = cv2.GaussianBlur(self.cv_img,(5,5),0)
+        th3,self.cv_img = cv2.threshold(self.cv_img,0,255,cv2.THRESH_BINARY+cv2.THRESH_OTSU)
+
+        # thresholding
+        #self.cv_img = cv2.threshold(self.cv_img,127,255,cv2.THRESH_BINARY)
+
+        self.displayAndUpdate()
 
 
 def main():
