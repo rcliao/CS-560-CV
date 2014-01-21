@@ -6,6 +6,7 @@ import cv2
 
 from Tkinter import Tk, Frame, Menu, Label, BOTH
 from tkFileDialog import askopenfilename, asksaveasfilename
+from tkSimpleDialog import askstring
 
 from PIL import Image, ImageTk
 
@@ -28,15 +29,17 @@ class MenuFrame(Frame):
 
         self.label = Label(self.parent)
         
+        # File Menu
         fileMenu = Menu(menubar)
         fileMenu.add_command(label="Load", command=self.onLoad)
         fileMenu.add_command(label="Save", command=self.onSave)
         fileMenu.add_command(label="Exit", command=self.onExit)
         menubar.add_cascade(label="File", menu=fileMenu)
 
+        # Homework 1 Menu
         hw1Menu = Menu(menubar)
         hw1Menu.add_command(label="Gray Scale", command=self.onGray)
-        hw1Menu.add_command(label="Resize Image")
+        hw1Menu.add_command(label="Resize Image", command=self.onResize)
         hw1Menu.add_command(label="Connect Component")
         hw1Menu.add_command(label="Erode/Dilate/Open/Close")
         hw1Menu.add_command(label="Smooth")
@@ -58,6 +61,8 @@ class MenuFrame(Frame):
 
         self.gray_img = Image.fromarray(self.img)
         self.gray_img_tk = ImageTk.PhotoImage(image=self.gray_img)
+
+        self.parent.geometry("%dx%d+%d+%d" % (self.gray_img_tk.width(), self.gray_img_tk.height(), 100, 100) )
         
         self.label = Label(self.parent, image=self.gray_img_tk)
         self.label.pack()
@@ -70,12 +75,31 @@ class MenuFrame(Frame):
 
         cv2.imwrite(filename, self.img)
 
+    """ Conver the image to gray scale and change the image to gray """
     def onGray(self):
-        self.img = cv2.cvtColor(self.cv_img, cv2.COLOR_RGB2GRAY)
+        self.cv_img = cv2.cvtColor(self.cv_img, cv2.COLOR_RGB2GRAY)
         self.gray_img = Image.fromarray(self.img)
         self.gray_img_tk = ImageTk.PhotoImage(image=self.gray_img)
         
         self.label = Label(self.parent, image=self.gray_img_tk)
+
+        self.label.pack()
+        self.label.place(x=0, y=0)
+        self.parent.update()
+
+    def onResize(self):
+        ratio = askstring("Ratio", "Enter a Ratio (0 - 1) to resize the image")
+        self.cv_img = cv2.resize(self.cv_img, None, fx=float(ratio), fy=float(ratio))
+
+        self.img = cv2.cvtColor(self.cv_img, cv2.COLOR_RGB2BGR)
+
+        self.gray_img = Image.fromarray(self.img)
+        self.gray_img_tk = ImageTk.PhotoImage(image=self.gray_img)
+
+        self.parent.geometry("%dx%d+%d+%d" % (self.gray_img_tk.width(), self.gray_img_tk.height(), 100, 100) )
+        
+        self.label = Label(self.parent, image=self.gray_img_tk)
+
         self.label.pack()
         self.label.place(x=0, y=0)
         self.parent.update()
