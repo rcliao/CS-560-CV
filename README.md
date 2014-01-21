@@ -1,4 +1,4 @@
 CS-560-CV
 =========
 
-A repository for CS 560 Computer Vision, still debating using C++ or Java
+This repository is implemented by opencv-python for image processing and TkInter as GUI
