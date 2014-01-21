@@ -40,7 +40,7 @@ class MenuFrame(Frame):
         hw1Menu = Menu(menubar)
         hw1Menu.add_command(label="Gray Scale", command=self.onGray)
         hw1Menu.add_command(label="Resize Image", command=self.onResize)
-        hw1Menu.add_command(label="Connect Component")
+        hw1Menu.add_command(label="Connect Component", command=self.onConnectedComponent)
 
         morphologicalMenu = Menu(fileMenu)
         morphologicalMenu.add_command(label="Threshold", command=self.onThreshold)
@@ -200,6 +200,22 @@ class MenuFrame(Frame):
         self.cv_img = cv2.equalizeHist(self.cv_img)
 
         self.displayAndUpdate()
+
+    def onConnectedComponent(self):
+        # change image to gray scale if not in gray scale mode
+        if len(self.cv_img.shape) == 3:
+            self.cv_img = cv2.cvtColor(self.cv_img, cv2.COLOR_RGB2GRAY)
+        self.cv_img = cv2.GaussianBlur(self.cv_img,(5,5),0)
+        th3,self.cv_img = cv2.threshold(self.cv_img,0,255,cv2.THRESH_BINARY+cv2.THRESH_OTSU)
+
+        self.contours, hierarchy = cv2.findContours(self.cv_img,cv2.RETR_TREE,cv2.CHAIN_APPROX_NONE)
+
+        self.cv_img = cv2.cvtColor(self.cv_img, cv2.COLOR_GRAY2RGB)
+
+        cv2.drawContours(self.cv_img, self.contours, -1, (255,0,0), 5)
+
+        self.displayAndUpdate()
+
 
 
 
