@@ -51,9 +51,9 @@ class MenuFrame(Frame):
 
         hw1Menu.add_cascade(label='Morphological Operations', menu=morphologicalMenu, underline=0)
 
-        hw1Menu.add_command(label="Smooth")
-        hw1Menu.add_command(label="Blur")
-        hw1Menu.add_command(label="Equalize the Histogram")
+        hw1Menu.add_command(label="Smooth", command=self.onSmooth)
+        hw1Menu.add_command(label="Blur", command=self.onBlur)
+        hw1Menu.add_command(label="Equalize the Histogram", command=self.onEqualizeHist)
         hw1Menu.add_command(label="Otsu's method")
         menubar.add_cascade(label="Homework 1", menu=hw1Menu)
 
@@ -176,10 +176,31 @@ class MenuFrame(Frame):
         self.cv_img = cv2.GaussianBlur(self.cv_img,(5,5),0)
         th3,self.cv_img = cv2.threshold(self.cv_img,0,255,cv2.THRESH_BINARY+cv2.THRESH_OTSU)
 
-        # thresholding
-        #self.cv_img = cv2.threshold(self.cv_img,127,255,cv2.THRESH_BINARY)
+        self.displayAndUpdate()
+
+    """ Smooth the image """
+    def onSmooth(self):
+        kernel = np.ones((5,5),np.float32)/25
+        self.cv_img = cv2.filter2D(self.cv_img,-1,kernel)
 
         self.displayAndUpdate()
+
+    """ Blur the image """
+    def onBlur(self):
+        self.cv_img = cv2.GaussianBlur(self.cv_img,(5,5),0)
+
+        self.displayAndUpdate()
+
+    """ Equalize the histogram """
+    def onEqualizeHist(self):
+        # change image to gray scale if not in gray scale mode
+        if len(self.cv_img.shape) == 3:
+            self.cv_img = cv2.cvtColor(self.cv_img, cv2.COLOR_RGB2GRAY)
+
+        self.cv_img = cv2.equalizeHist(self.cv_img)
+
+        self.displayAndUpdate()
+
 
 
 def main():
