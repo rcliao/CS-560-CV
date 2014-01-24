@@ -54,7 +54,7 @@ class MenuFrame(Frame):
         hw1Menu.add_command(label="Smooth", command=self.onSmooth)
         hw1Menu.add_command(label="Blur", command=self.onBlur)
         hw1Menu.add_command(label="Equalize the Histogram", command=self.onEqualizeHist)
-        hw1Menu.add_command(label="Otsu's method")
+        hw1Menu.add_command(label="Otsu's method", command=self.onOtsu)
         menubar.add_cascade(label="Homework 1", menu=hw1Menu)
 
     """ Display and Update the middle screen """
@@ -230,6 +230,51 @@ class MenuFrame(Frame):
 
         self.displayAndUpdate()
 
+
+    """ Otsu's method """
+    def onOtsu(self):
+        # change image to gray scale if not in gray scale mode
+        if len(self.cv_img.shape) == 3:
+            self.cv_img = cv2.cvtColor(self.cv_img, cv2.COLOR_RGB2GRAY)
+
+        self.cv_img = cv2.GaussianBlur(self.cv_img,(5,5),0)
+
+        # find thresh value using otsu's method
+        # find normalized_histogram, and its cum_sum
+        hist = cv2.calcHist([self.cv_img],[0],None,[256],[0,256])
+        hist_norm = hist.ravel()/hist.max()
+        Q = hist_norm.cumsum()
+         
+        bins = np.arange(256)
+         
+        fn_min = np.inf
+        thresh = -1
+         
+        for i in xrange(1,256):
+            p1,p2 = np.hsplit(hist_norm,[i]) # probabilities
+            q1,q2 = Q[i],Q[255]-Q[i] # cum sum of classes
+            b1,b2 = np.hsplit(bins,[i]) # weights
+             
+            # finding means and variances
+            if q2 != 0 and q1 != 0:
+                m1,m2 = np.sum( p1*b1 )/q1, np.sum( p2*b2 )/q2 
+                v1,v2 = np.sum(((b1-m1)**2)*p1)/q1,np.sum(((b2-m2)**2)*p2)/q2
+             
+                # calculates the minimization function
+                fn = v1*q1 + v2*q2
+                if fn < fn_min:
+                    fn_min = fn
+                    thresh = i
+
+        print 'Thresh value from mine: ', thresh
+
+        ret, otsu = cv2.threshold(self.cv_img,0,255,cv2.THRESH_BINARY+cv2.THRESH_OTSU)
+
+        print 'Thresh value from opencv: ', ret
+
+        th3,self.cv_img = cv2.threshold(self.cv_img,thresh,255,cv2.THRESH_BINARY)
+
+        self.displayAndUpdate()
 
 
 
