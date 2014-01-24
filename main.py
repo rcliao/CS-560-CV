@@ -3,12 +3,15 @@
 
 import numpy as np
 import cv2
+import cv2.cv as cv
 
 from Tkinter import Tk, Frame, Menu, Label, BOTH
 from tkFileDialog import askopenfilename, asksaveasfilename
 from tkSimpleDialog import askstring
 
 from PIL import Image, ImageTk
+
+import random
 
 
 class MenuFrame(Frame):
@@ -64,15 +67,23 @@ class MenuFrame(Frame):
         self.input_img_tmp = Image.fromarray(self.input_img)
         self.input_img_tk = ImageTk.PhotoImage(image=self.input_img_tmp)
 
-        self.parent.geometry("%dx%d+%d+%d" % (self.input_img_tk.width()*2, self.input_img_tk.height()+50, 100, 100) )
+        if self.input_img_tk.width() < 500:
+            self.parent.geometry("%dx%d+%d+%d" % (self.input_img_tk.width()*2, self.input_img_tk.height()+50, 100, 100) )
+        else:
+            self.input_img_tmp = self.input_img_tmp.resize((500, self.input_img_tk.height() * 500 / self.input_img_tk.width()),Image.ANTIALIAS)
+            self.input_img_tk = ImageTk.PhotoImage(image=self.input_img_tmp)
+            self.output_img_tmp = self.output_img_tmp.resize((500, self.output_img_tk.height() * 500 / self.output_img_tk.width()),Image.ANTIALIAS)
+            self.output_img_tk = ImageTk.PhotoImage(image=self.output_img_tmp)
+
+            self.parent.geometry("%dx%d+%d+%d" % (1050, self.output_img_tk.height() * 500 / self.output_img_tk.width()+50, 100, 100) )
         
-        self.input_img_label = Label(self.parent, image=self.input_img_tk)
+        self.input_img_label = Label(self.parent, image=self.input_img_tk, borderwidth=3)
         self.input_img_label.grid(row=0,column=0)
 
         self.input_img_label_text = Label(self.parent, text="Input Image")
         self.input_img_label_text.grid(row=1,column=0)
 
-        self.output_img_label = Label(self.parent, image=self.output_img_tk)
+        self.output_img_label = Label(self.parent, image=self.output_img_tk, borderwidth=3)
         self.output_img_label.grid(row=0,column=1)
 
         self.output_img_label_text = Label(self.parent, text="Output Image")
@@ -86,13 +97,13 @@ class MenuFrame(Frame):
 
     """ Load the Image and show it on the GUI """
     def onLoad(self):
-        filename = askopenfilename() # show an "Open" dialog box and return the path to the selected file
+        self.filename = askopenfilename() # show an "Open" dialog box and return the path to the selected file
 
-        self.output_img = cv2.imread(filename, 1)
+        self.output_img = cv2.imread(self.filename, 1)
 
         self.output_img = cv2.cvtColor(self.output_img, cv2.COLOR_RGB2BGR)
 
-        self.input_img = cv2.imread(filename, 1)
+        self.input_img = cv2.imread(self.filename, 1)
 
         self.input_img = cv2.cvtColor(self.input_img, cv2.COLOR_RGB2BGR)
 
@@ -219,29 +230,15 @@ class MenuFrame(Frame):
 
     """ Connected Component Analysis """
     def onConnectedComponent(self):
-        # change image to gray scale if not in gray scale mode
-        if len(self.output_img.shape) == 3:
-            self.output_img = cv2.cvtColor(self.output_img, cv2.COLOR_RGB2GRAY)
-        self.output_img = cv2.GaussianBlur(self.output_img,(5,5),0)
-        th3,self.output_img = cv2.threshold(self.output_img,0,255,cv2.THRESH_BINARY+cv2.THRESH_OTSU)
+        self.storage = cv.CreateMemStorage()
 
-        self.contours, hierarchy = cv2.findContours(self.output_img,cv2.RETR_TREE,cv2.CHAIN_APPROX_NONE)
+        self.output_img = cv.LoadImage(self.filename)
 
-        self.output_img = cv2.cvtColor(self.output_img, cv2.COLOR_GRAY2RGB)
+        cv.PyrSegmentation(self.output_img, self.output_img, self.storage, 4, 255, 55)
 
-        connectivity = 4
-        seed_pt = None
-        h, w = self.output_img.shape[:2]
-        fixed_range = True
-        mask = np.zeros((h+2, w+2), np.uint8)
+        self.output_img = np.asarray( self.output_img[:, :] )
 
-        mask[:] = 0
-        
-        flags = connectivity
-        if fixed_range:
-            flags |= cv2.FLOODFILL_FIXED_RANGE
-        cv2.floodFill(self.output_img, mask, seed_pt, (255, 0, 0))
-        cv2.circle(self.output_img, seed_pt, 2, (0, 0, 255), -1)
+        self.output_img = cv2.cvtColor(self.output_img, cv2.COLOR_RGB2BGR)
 
         self.displayAndUpdate()
 
