@@ -57,6 +57,7 @@ class MenuFrame(Frame):
         hw1Menu.add_command(label="Otsu's method")
         menubar.add_cascade(label="Homework 1", menu=hw1Menu)
 
+    """ Display and Update the middle screen """
     def displayAndUpdate(self):
         self.gray_img = Image.fromarray(self.cv_img)
         self.gray_img_tk = ImageTk.PhotoImage(image=self.gray_img)
@@ -201,6 +202,7 @@ class MenuFrame(Frame):
 
         self.displayAndUpdate()
 
+    """ Connected Component Analysis """
     def onConnectedComponent(self):
         # change image to gray scale if not in gray scale mode
         if len(self.cv_img.shape) == 3:
@@ -212,7 +214,19 @@ class MenuFrame(Frame):
 
         self.cv_img = cv2.cvtColor(self.cv_img, cv2.COLOR_GRAY2RGB)
 
-        cv2.drawContours(self.cv_img, self.contours, -1, (255,0,0), 5)
+        connectivity = 4
+        seed_pt = None
+        h, w = self.cv_img.shape[:2]
+        fixed_range = True
+        mask = np.zeros((h+2, w+2), np.uint8)
+
+        mask[:] = 0
+        
+        flags = connectivity
+        if fixed_range:
+            flags |= cv2.FLOODFILL_FIXED_RANGE
+        cv2.floodFill(self.cv_img, mask, seed_pt, (255, 0, 0))
+        cv2.circle(self.cv_img, seed_pt, 2, (0, 0, 255), -1)
 
         self.displayAndUpdate()
 
