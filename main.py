@@ -22,7 +22,6 @@ class MenuFrame(Frame):
     def initUI(self):
       
         self.parent.title("CS 560 Homework")
-        self.pack(fill=BOTH, expand=1)
         
         menubar = Menu(self.parent)
         self.parent.config(menu=menubar)
@@ -59,14 +58,26 @@ class MenuFrame(Frame):
 
     """ Display and Update the middle screen """
     def displayAndUpdate(self):
-        self.gray_img = Image.fromarray(self.cv_img)
-        self.gray_img_tk = ImageTk.PhotoImage(image=self.gray_img)
+        self.output_img_tmp = Image.fromarray(self.output_img)
+        self.output_img_tk = ImageTk.PhotoImage(image=self.output_img_tmp)
 
-        self.parent.geometry("%dx%d+%d+%d" % (self.gray_img_tk.width(), self.gray_img_tk.height(), 100, 100) )
+        self.input_img_tmp = Image.fromarray(self.input_img)
+        self.input_img_tk = ImageTk.PhotoImage(image=self.input_img_tmp)
+
+        self.parent.geometry("%dx%d+%d+%d" % (self.input_img_tk.width()*2, self.input_img_tk.height()+50, 100, 100) )
         
-        self.label = Label(self.parent, image=self.gray_img_tk)
-        self.label.pack()
-        self.label.place(x=0, y=0)
+        self.input_img_label = Label(self.parent, image=self.input_img_tk)
+        self.input_img_label.grid(row=0,column=0)
+
+        self.input_img_label_text = Label(self.parent, text="Input Image")
+        self.input_img_label_text.grid(row=1,column=0)
+
+        self.output_img_label = Label(self.parent, image=self.output_img_tk)
+        self.output_img_label.grid(row=0,column=1)
+
+        self.output_img_label_text = Label(self.parent, text="Output Image")
+        self.output_img_label_text.grid(row=1,column=1)
+
         self.parent.update()
         
     """ Quit program """
@@ -77,9 +88,13 @@ class MenuFrame(Frame):
     def onLoad(self):
         filename = askopenfilename() # show an "Open" dialog box and return the path to the selected file
 
-        self.cv_img = cv2.imread(filename, 1)
+        self.output_img = cv2.imread(filename, 1)
 
-        self.cv_img = cv2.cvtColor(self.cv_img, cv2.COLOR_RGB2BGR)
+        self.output_img = cv2.cvtColor(self.output_img, cv2.COLOR_RGB2BGR)
+
+        self.input_img = cv2.imread(filename, 1)
+
+        self.input_img = cv2.cvtColor(self.input_img, cv2.COLOR_RGB2BGR)
 
         self.displayAndUpdate()
 
@@ -87,19 +102,19 @@ class MenuFrame(Frame):
     def onSave(self):
         filename = asksaveasfilename() # show an "Save" dialog box and return the path to the selected file
 
-        cv2.imwrite(filename, self.cv_img)
+        cv2.imwrite(filename, self.output_img)
 
     """ Conver the image to gray scale and change the image to gray """
     def onGray(self):
-        if len(self.cv_img.shape) == 3:
-            self.cv_img = cv2.cvtColor(self.cv_img, cv2.COLOR_RGB2GRAY)
+        if len(self.output_img.shape) == 3:
+            self.output_img = cv2.cvtColor(self.output_img, cv2.COLOR_RGB2GRAY)
         
         self.displayAndUpdate()
 
     """ Resize the image according to user input """
     def onResize(self):
         ratio = askstring("Ratio", "Enter a Ratio (0 - 1) to resize the image")
-        self.cv_img = cv2.resize(self.cv_img, None, fx=float(ratio), fy=float(ratio))
+        self.output_img = cv2.resize(self.output_img, None, fx=float(ratio), fy=float(ratio))
 
         self.displayAndUpdate()
 
@@ -107,15 +122,15 @@ class MenuFrame(Frame):
     def onErode(self):
 
         # change image to gray scale if not in gray scale mode
-        if len(self.cv_img.shape) == 3:
-            self.cv_img = cv2.cvtColor(self.cv_img, cv2.COLOR_RGB2GRAY)
+        if len(self.output_img.shape) == 3:
+            self.output_img = cv2.cvtColor(self.output_img, cv2.COLOR_RGB2GRAY)
 
         # thresholding
-        self.cv_img = cv2.GaussianBlur(self.cv_img,(5,5),0)
-        th3,self.cv_img = cv2.threshold(self.cv_img,0,255,cv2.THRESH_BINARY+cv2.THRESH_OTSU)
+        self.output_img = cv2.GaussianBlur(self.output_img,(5,5),0)
+        th3,self.output_img = cv2.threshold(self.output_img,0,255,cv2.THRESH_BINARY+cv2.THRESH_OTSU)
 
         kernel = np.ones((5,5),np.uint8)
-        self.cv_img = cv2.erode(self.cv_img,kernel,iterations = 1)
+        self.output_img = cv2.erode(self.output_img,kernel,iterations = 1)
         
         self.displayAndUpdate()
 
@@ -123,15 +138,15 @@ class MenuFrame(Frame):
     def onDilate(self):
 
         # change image to gray scale if not in gray scale mode
-        if len(self.cv_img.shape) == 3:
-            self.cv_img = cv2.cvtColor(self.cv_img, cv2.COLOR_RGB2GRAY)
+        if len(self.output_img.shape) == 3:
+            self.output_img = cv2.cvtColor(self.output_img, cv2.COLOR_RGB2GRAY)
 
         # thresholding
-        self.cv_img = cv2.GaussianBlur(self.cv_img,(5,5),0)
-        th3,self.cv_img = cv2.threshold(self.cv_img,0,255,cv2.THRESH_BINARY+cv2.THRESH_OTSU)
+        self.output_img = cv2.GaussianBlur(self.output_img,(5,5),0)
+        th3,self.output_img = cv2.threshold(self.output_img,0,255,cv2.THRESH_BINARY+cv2.THRESH_OTSU)
 
         kernel = np.ones((5,5),np.uint8)
-        self.cv_img = cv2.dilate(self.cv_img,kernel,iterations = 1)
+        self.output_img = cv2.dilate(self.output_img,kernel,iterations = 1)
         
         self.displayAndUpdate()
 
@@ -139,15 +154,15 @@ class MenuFrame(Frame):
     def onOpen(self):
 
         # change image to gray scale if not in gray scale mode
-        if len(self.cv_img.shape) == 3:
-            self.cv_img = cv2.cvtColor(self.cv_img, cv2.COLOR_RGB2GRAY)
+        if len(self.output_img.shape) == 3:
+            self.output_img = cv2.cvtColor(self.output_img, cv2.COLOR_RGB2GRAY)
 
         # thresholding
-        self.cv_img = cv2.GaussianBlur(self.cv_img,(5,5),0)
-        th3,self.cv_img = cv2.threshold(self.cv_img,0,255,cv2.THRESH_BINARY+cv2.THRESH_OTSU)
+        self.output_img = cv2.GaussianBlur(self.output_img,(5,5),0)
+        th3,self.output_img = cv2.threshold(self.output_img,0,255,cv2.THRESH_BINARY+cv2.THRESH_OTSU)
 
         kernel = np.ones((5,5),np.uint8)
-        self.cv_img = cv2.morphologyEx(self.cv_img, cv2.MORPH_OPEN,kernel)
+        self.output_img = cv2.morphologyEx(self.output_img, cv2.MORPH_OPEN,kernel)
         
         self.displayAndUpdate()
 
@@ -155,15 +170,15 @@ class MenuFrame(Frame):
     def onClose(self):
 
         # change image to gray scale if not in gray scale mode
-        if len(self.cv_img.shape) == 3:
-            self.cv_img = cv2.cvtColor(self.cv_img, cv2.COLOR_RGB2GRAY)
+        if len(self.output_img.shape) == 3:
+            self.output_img = cv2.cvtColor(self.output_img, cv2.COLOR_RGB2GRAY)
 
         # thresholding
-        self.cv_img = cv2.GaussianBlur(self.cv_img,(5,5),0)
-        th3,self.cv_img = cv2.threshold(self.cv_img,0,255,cv2.THRESH_BINARY+cv2.THRESH_OTSU)
+        self.output_img = cv2.GaussianBlur(self.output_img,(5,5),0)
+        th3,self.output_img = cv2.threshold(self.output_img,0,255,cv2.THRESH_BINARY+cv2.THRESH_OTSU)
 
         kernel = np.ones((5,5),np.uint8)
-        self.cv_img = cv2.morphologyEx(self.cv_img, cv2.MORPH_CLOSE, kernel)
+        self.output_img = cv2.morphologyEx(self.output_img, cv2.MORPH_CLOSE, kernel)
         
         self.displayAndUpdate()
 
@@ -171,52 +186,52 @@ class MenuFrame(Frame):
     def onThreshold(self):
 
         # change image to gray scale if not in gray scale mode
-        if len(self.cv_img.shape) == 3:
-            self.cv_img = cv2.cvtColor(self.cv_img, cv2.COLOR_RGB2GRAY)
+        if len(self.output_img.shape) == 3:
+            self.output_img = cv2.cvtColor(self.output_img, cv2.COLOR_RGB2GRAY)
 
-        self.cv_img = cv2.GaussianBlur(self.cv_img,(5,5),0)
-        th3,self.cv_img = cv2.threshold(self.cv_img,0,255,cv2.THRESH_BINARY+cv2.THRESH_OTSU)
+        self.output_img = cv2.GaussianBlur(self.output_img,(5,5),0)
+        th3,self.output_img = cv2.threshold(self.output_img,0,255,cv2.THRESH_BINARY+cv2.THRESH_OTSU)
 
         self.displayAndUpdate()
 
     """ Smooth the image """
     def onSmooth(self):
         kernel = np.ones((5,5),np.float32)/25
-        self.cv_img = cv2.filter2D(self.cv_img,-1,kernel)
+        self.output_img = cv2.filter2D(self.output_img,-1,kernel)
 
         self.displayAndUpdate()
 
     """ Blur the image """
     def onBlur(self):
-        self.cv_img = cv2.GaussianBlur(self.cv_img,(5,5),0)
+        self.output_img = cv2.GaussianBlur(self.output_img,(5,5),0)
 
         self.displayAndUpdate()
 
     """ Equalize the histogram """
     def onEqualizeHist(self):
         # change image to gray scale if not in gray scale mode
-        if len(self.cv_img.shape) == 3:
-            self.cv_img = cv2.cvtColor(self.cv_img, cv2.COLOR_RGB2GRAY)
+        if len(self.output_img.shape) == 3:
+            self.output_img = cv2.cvtColor(self.output_img, cv2.COLOR_RGB2GRAY)
 
-        self.cv_img = cv2.equalizeHist(self.cv_img)
+        self.output_img = cv2.equalizeHist(self.output_img)
 
         self.displayAndUpdate()
 
     """ Connected Component Analysis """
     def onConnectedComponent(self):
         # change image to gray scale if not in gray scale mode
-        if len(self.cv_img.shape) == 3:
-            self.cv_img = cv2.cvtColor(self.cv_img, cv2.COLOR_RGB2GRAY)
-        self.cv_img = cv2.GaussianBlur(self.cv_img,(5,5),0)
-        th3,self.cv_img = cv2.threshold(self.cv_img,0,255,cv2.THRESH_BINARY+cv2.THRESH_OTSU)
+        if len(self.output_img.shape) == 3:
+            self.output_img = cv2.cvtColor(self.output_img, cv2.COLOR_RGB2GRAY)
+        self.output_img = cv2.GaussianBlur(self.output_img,(5,5),0)
+        th3,self.output_img = cv2.threshold(self.output_img,0,255,cv2.THRESH_BINARY+cv2.THRESH_OTSU)
 
-        self.contours, hierarchy = cv2.findContours(self.cv_img,cv2.RETR_TREE,cv2.CHAIN_APPROX_NONE)
+        self.contours, hierarchy = cv2.findContours(self.output_img,cv2.RETR_TREE,cv2.CHAIN_APPROX_NONE)
 
-        self.cv_img = cv2.cvtColor(self.cv_img, cv2.COLOR_GRAY2RGB)
+        self.output_img = cv2.cvtColor(self.output_img, cv2.COLOR_GRAY2RGB)
 
         connectivity = 4
         seed_pt = None
-        h, w = self.cv_img.shape[:2]
+        h, w = self.output_img.shape[:2]
         fixed_range = True
         mask = np.zeros((h+2, w+2), np.uint8)
 
@@ -225,8 +240,8 @@ class MenuFrame(Frame):
         flags = connectivity
         if fixed_range:
             flags |= cv2.FLOODFILL_FIXED_RANGE
-        cv2.floodFill(self.cv_img, mask, seed_pt, (255, 0, 0))
-        cv2.circle(self.cv_img, seed_pt, 2, (0, 0, 255), -1)
+        cv2.floodFill(self.output_img, mask, seed_pt, (255, 0, 0))
+        cv2.circle(self.output_img, seed_pt, 2, (0, 0, 255), -1)
 
         self.displayAndUpdate()
 
@@ -234,14 +249,14 @@ class MenuFrame(Frame):
     """ Otsu's method """
     def onOtsu(self):
         # change image to gray scale if not in gray scale mode
-        if len(self.cv_img.shape) == 3:
-            self.cv_img = cv2.cvtColor(self.cv_img, cv2.COLOR_RGB2GRAY)
+        if len(self.output_img.shape) == 3:
+            self.output_img = cv2.cvtColor(self.output_img, cv2.COLOR_RGB2GRAY)
 
-        self.cv_img = cv2.GaussianBlur(self.cv_img,(5,5),0)
+        self.output_img = cv2.GaussianBlur(self.output_img,(5,5),0)
 
         # find thresh value using otsu's method
         # find normalized_histogram, and its cum_sum
-        hist = cv2.calcHist([self.cv_img],[0],None,[256],[0,256])
+        hist = cv2.calcHist([self.output_img],[0],None,[256],[0,256])
         hist_norm = hist.ravel()/hist.max()
         Q = hist_norm.cumsum()
          
@@ -268,11 +283,11 @@ class MenuFrame(Frame):
 
         print 'Thresh value from mine: ', thresh
 
-        ret, otsu = cv2.threshold(self.cv_img,0,255,cv2.THRESH_BINARY+cv2.THRESH_OTSU)
+        ret, otsu = cv2.threshold(self.output_img,0,255,cv2.THRESH_BINARY+cv2.THRESH_OTSU)
 
         print 'Thresh value from opencv: ', ret
 
-        th3,self.cv_img = cv2.threshold(self.cv_img,thresh,255,cv2.THRESH_BINARY)
+        th3,self.output_img = cv2.threshold(self.output_img,thresh,255,cv2.THRESH_BINARY)
 
         self.displayAndUpdate()
 
@@ -281,7 +296,7 @@ class MenuFrame(Frame):
 def main():
   
     root = Tk()
-    root.geometry("550x550+300+300")
+    root.geometry("550x550+100+100")
     app = MenuFrame(root)
     root.mainloop()  
 
