@@ -59,6 +59,14 @@ class MenuFrame(Frame):
         hw1Menu.add_command(label="Otsu's method", command=self.onOtsu)
         menubar.add_cascade(label="Homework 1", menu=hw1Menu)
 
+        # Homework 1 Menu
+        hw2Menu = Menu(menubar)
+        hw2Menu.add_command(label="Extract Apple")
+        hw2Menu.add_command(label="Extract Coins")
+        hw2Menu.add_command(label="Extract Line")
+
+        menubar.add_cascade(label="Homework 2", menu=hw2Menu)
+
     """ Display and Update the middle screen """
     def displayAndUpdate(self):
         self.output_img_tmp = Image.fromarray(self.output_img)
@@ -228,7 +236,7 @@ class MenuFrame(Frame):
 
         self.displayAndUpdate()
 
-    """ Connected Component Analysis """
+    """ Using findContours and drawContours to create Connected Component Analysis """
     def onConnectedComponent(self):
         self.storage = cv.CreateMemStorage()
 
