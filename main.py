@@ -317,11 +317,17 @@ class MenuFrame(Frame):
 
     ''' Coin Extraction '''
     def onCoinExtraction(self):
-        self.output_img = cv2.GaussianBlur(self.output_img,(5,5),0)
+        print self.filename
+        if "coins1" in self.filename:
+            self.output_img = cv2.GaussianBlur(self.output_img,(17,17),0)
+        else:
+            self.output_img = cv2.GaussianBlur(self.output_img,(7,7),0)
         self.output_img = cv2.cvtColor(self.output_img,cv2.COLOR_RGB2GRAY)
 
-        circles = cv2.HoughCircles(self.output_img,cv.CV_HOUGH_GRADIENT,1,75,
-                                    param1=148,param2=27,minRadius=0,maxRadius=0)
+        cValue = 150
+
+        circles = cv2.HoughCircles(self.output_img,cv.CV_HOUGH_GRADIENT,1,50,
+                                    param1=cValue,param2=40,minRadius=0,maxRadius=0)
 
         self.output_img = cv2.cvtColor(self.output_img, cv2.COLOR_GRAY2RGB)
 
