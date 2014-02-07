@@ -5,7 +5,7 @@ import numpy as np
 import cv2
 import cv2.cv as cv
 
-from Tkinter import Tk, Frame, Menu, Label, BOTH
+from Tkinter import Tk, Frame, Menu, Label, BOTH, LEFT
 from tkFileDialog import askopenfilename, asksaveasfilename
 from tkSimpleDialog import askstring
 
@@ -61,7 +61,7 @@ class MenuFrame(Frame):
 
         # Homework 1 Menu
         hw2Menu = Menu(menubar)
-        hw2Menu.add_command(label="Extract Apple")
+        hw2Menu.add_command(label="Extract Apple", command=self.onAppleExtraction)
         hw2Menu.add_command(label="Extract Coins")
         hw2Menu.add_command(label="Extract Line")
 
@@ -83,15 +83,15 @@ class MenuFrame(Frame):
             self.output_img_tmp = self.output_img_tmp.resize((500, self.output_img_tk.height() * 500 / self.output_img_tk.width()),Image.ANTIALIAS)
             self.output_img_tk = ImageTk.PhotoImage(image=self.output_img_tmp)
 
-            self.parent.geometry("%dx%d+%d+%d" % (1050, self.output_img_tk.height() * 500 / self.output_img_tk.width()+50, 100, 100) )
+            self.parent.geometry("%dx%d+%d+%d" % (1050, self.input_img_tk.height() + 50, 100, 100) )
         
-        self.input_img_label = Label(self.parent, image=self.input_img_tk, borderwidth=3)
+        self.input_img_label = Label(self.parent, image=self.input_img_tk, borderwidth=3, height=self.input_img_tk.height(), width=self.input_img_tk.width())
         self.input_img_label.grid(row=0,column=0)
 
         self.input_img_label_text = Label(self.parent, text="Input Image")
         self.input_img_label_text.grid(row=1,column=0)
 
-        self.output_img_label = Label(self.parent, image=self.output_img_tk, borderwidth=3)
+        self.output_img_label = Label(self.parent, image=self.output_img_tk, borderwidth=3, height=self.output_img_tk.height(), width=self.output_img_tk.width())
         self.output_img_label.grid(row=0,column=1)
 
         self.output_img_label_text = Label(self.parent, text="Output Image")
@@ -296,6 +296,23 @@ class MenuFrame(Frame):
 
         self.displayAndUpdate()
 
+    def onAppleExtraction(self):
+        self.output_img = cv2.GaussianBlur(self.output_img,(5,5),0)
+        self.output_img = cv2.cvtColor(self.output_img,cv2.COLOR_RGB2GRAY)
+
+        circles = cv2.HoughCircles(self.output_img,cv.CV_HOUGH_GRADIENT,1,75,
+                                    param1=148,param2=27,minRadius=0,maxRadius=0)
+
+        self.output_img = cv2.cvtColor(self.output_img, cv2.COLOR_GRAY2RGB)
+
+        circles = np.uint16(np.around(circles))
+        for i in circles[0,:]:
+            # draw the outer circle
+            cv2.circle(self.output_img,(i[0],i[1]),i[2],(0,255,0),2)
+            # draw the center of the circle
+            cv2.circle(self.output_img,(i[0],i[1]),2,(0,0,255),3)
+ 
+        self.displayAndUpdate()
 
 
 def main():
