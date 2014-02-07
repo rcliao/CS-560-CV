@@ -62,8 +62,8 @@ class MenuFrame(Frame):
         # Homework 1 Menu
         hw2Menu = Menu(menubar)
         hw2Menu.add_command(label="Extract Apple", command=self.onAppleExtraction)
-        hw2Menu.add_command(label="Extract Coins")
-        hw2Menu.add_command(label="Extract Line")
+        hw2Menu.add_command(label="Extract Coins", command=self.onCoinExtraction)
+        hw2Menu.add_command(label="Extract Line", command=self.onLineExtraction)
 
         menubar.add_cascade(label="Homework 2", menu=hw2Menu)
 
@@ -296,6 +296,7 @@ class MenuFrame(Frame):
 
         self.displayAndUpdate()
 
+    ''' Apple Extraction '''
     def onAppleExtraction(self):
         self.output_img = cv2.GaussianBlur(self.output_img,(5,5),0)
         self.output_img = cv2.cvtColor(self.output_img,cv2.COLOR_RGB2GRAY)
@@ -311,6 +312,38 @@ class MenuFrame(Frame):
             cv2.circle(self.output_img,(i[0],i[1]),i[2],(0,255,0),2)
             # draw the center of the circle
             cv2.circle(self.output_img,(i[0],i[1]),2,(0,0,255),3)
+ 
+        self.displayAndUpdate()
+
+    ''' Coin Extraction '''
+    def onCoinExtraction(self):
+        self.output_img = cv2.GaussianBlur(self.output_img,(5,5),0)
+        self.output_img = cv2.cvtColor(self.output_img,cv2.COLOR_RGB2GRAY)
+
+        circles = cv2.HoughCircles(self.output_img,cv.CV_HOUGH_GRADIENT,1,75,
+                                    param1=148,param2=27,minRadius=0,maxRadius=0)
+
+        self.output_img = cv2.cvtColor(self.output_img, cv2.COLOR_GRAY2RGB)
+
+        circles = np.uint16(np.around(circles))
+        for i in circles[0,:]:
+            # draw the outer circle
+            cv2.circle(self.output_img,(i[0],i[1]),i[2],(0,255,0),2)
+            # draw the center of the circle
+            cv2.circle(self.output_img,(i[0],i[1]),2,(0,0,255),3)
+ 
+        self.displayAndUpdate()
+
+    ''' Extract Line '''
+    def onLineExtraction(self):
+        gray = cv2.cvtColor(self.output_img, cv2.COLOR_BGR2GRAY)
+
+        edges = cv2.Canny(gray, 80, 200,apertureSize = 3)
+
+        lines = cv2.HoughLinesP(edges, 1, np.pi/180, 50, minLineLength=50, maxLineGap=8)
+
+        for x1,y1,x2,y2 in lines[0]:
+            cv2.line(self.output_img,(x1,y1),(x2,y2),(0,255,0),2)
  
         self.displayAndUpdate()
 
