@@ -59,13 +59,20 @@ class MenuFrame(Frame):
         hw1Menu.add_command(label="Otsu's method", command=self.onOtsu)
         menubar.add_cascade(label="Homework 1", menu=hw1Menu)
 
-        # Homework 1 Menu
+        # Homework 2 Menu
         hw2Menu = Menu(menubar)
         hw2Menu.add_command(label="Extract Apple", command=self.onAppleExtraction)
         hw2Menu.add_command(label="Extract Coins", command=self.onCoinExtraction)
         hw2Menu.add_command(label="Extract Line", command=self.onLineExtraction)
 
         menubar.add_cascade(label="Homework 2", menu=hw2Menu)
+
+        # Homework 3 Menu
+        hw3Menu = Menu(menubar)
+        hw3Menu.add_command(label="PCA Computation", command=self.onPCACompute)
+        hw3Menu.add_command(label="Eigenfaces")
+
+        menubar.add_cascade(label="Homework 3", menu=hw3Menu)
 
     """ Display and Update the middle screen """
     def displayAndUpdate(self):
@@ -353,6 +360,24 @@ class MenuFrame(Frame):
  
         self.displayAndUpdate()
 
+    def onPCACompute(self):
+        dataArray = np.array([
+            [2.5, 2.4],
+            [0.5, 0.7],
+            [2.2, 2.9],
+            [1.9, 2.2],
+            [3.1, 3.0],
+            [2.3, 2.7],
+            [2, 1.6],
+            [1, 1.1],
+            [1.5, 1.6],
+            [1.1, 0.9]
+        ])
+
+        mean, eigenvectors = cv2.PCACompute(dataArray)
+
+        print mean
+        print eigenvectors
 
 def main():
   
